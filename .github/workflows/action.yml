@@ -18,7 +18,6 @@ jobs:
 
       - name: Save output to JSON
         run: |
-          bun scraper.ts > output.json
           git config --global user.name 'Matvey Melishev'
           git config --global user.email 'melishevm@gmail.com'
           git add output.json
