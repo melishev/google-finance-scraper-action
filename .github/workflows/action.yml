@@ -1,0 +1,26 @@
+name: Run Scraper File
+
+on: workflow_dispatch
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Run scraper
+        run: bun scraper.ts
+
+      - name: Save output to JSON
+        run: |
+          bun scraper.ts > output.json
+          git config --global user.name 'Matvey Melishev'
+          git config --global user.email 'melishevm@gmail.com'
+          git add output.json
+          git commit -m 'feat: update data'
+          git push
