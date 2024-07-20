@@ -21,6 +21,7 @@ if (matches) {
   // matches[1] содержит значение атрибута data-last-price
   const value = matches[1]
   console.log('Value data-last-price:', value)
+  return value
 } else {
   console.log('Attribute data-last-price not found')
 }
