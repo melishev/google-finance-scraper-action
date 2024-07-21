@@ -1,33 +1,103 @@
 import fs from 'fs'
+import currenciesRaw from './src/currencies.json'
 
-const endpoint = (code: string = 'USD', primaryCode: string = 'EUR') =>
+const now = new Date();
+
+type AllCurrencies = { [x: string]: number }
+
+const regex = /data-last-price="([^"]*)"/
+const endpoint = (code: string, primaryCode: string) =>
   `https://www.google.com/finance/quote/${code}-${primaryCode}`
 
-async function makeRequest() {
-  const response = await fetch(endpoint(), {
-    method: 'GET',
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36',
-    },
-    mode: 'no-cors',
-  })
+const log = (currencyPair: string, ...message: any[]) => console.log(currencyPair, ...message)
 
-  const text = await response.text()
+function prepareRequests(primaryCurrency: string) {
+  // const currencies = ['USD', 'EUR', 'RUB', 'GEL', 'TRY', 'BAM'] as const
+  const currencies = currenciesRaw.map((currency) => currency.code)
+  const requests = currencies.map((code) => fetch(endpoint(code, primaryCurrency)))
 
-  const regex = /data-last-price="([^"]*)"/
-
-  // Поиск совпадений
-  const matches = text.match(regex)
-
-  if (matches) {
-    // matches[1] содержит значение атрибута data-last-price
-    const value = matches[1]
-    console.log('Value data-last-price:', value)
-    return value
-  } else {
-    console.log('Attribute data-last-price not found')
+  return {
+    requests,
+    currencies,
   }
 }
 
-fs.writeFileSync('output.json', JSON.stringify(await makeRequest(), null, 2), 'utf-8')
+// async function makeRequest(primaryCurrency: string): Promise<AllCurrencies> {
+//   const { requests, currencies } = prepareRequests(primaryCurrency)
+
+//   // const value = new Map<string, number>();
+//   let collection: AllCurrencies = {}
+
+//   for (const currency of currencies) {
+//     const response = await fetch(endpoint(currency, primaryCurrency), {
+//       method: 'GET',
+//     })
+//     const text = await response.text()
+//     const matches = text.match(regex)
+
+//     if (matches) {
+//       const value = Number(matches[1])
+//       // value.set(currency, Number(matches[1]))
+//       collection = { ...collection, [currency]: value }
+//       log(currency, 'data-last-price:', value)
+//     } else {
+//       log(currency, 'data-last-price not found')
+//     }
+//   }
+
+//   return collection
+// }
+
+async function processResponse(currency: string, response: Response): Promise<number> {
+  let value = NaN
+
+  const text = await response.text()
+  const matches = text.match(regex)
+
+  if (matches) {
+    value = Number(matches[1])
+    log(currency, 'data-last-price:', value)
+  } else {
+    log(currency, 'data-last-price not found')
+  }
+
+  return value
+}
+
+async function makeRequestSync(primaryCurrency: string) {
+  const { requests, currencies } = prepareRequests(primaryCurrency)
+
+  const value = await Promise.all(requests).then(async (responses) => {
+    return currencies.reduce(async (acc, currency, idx) => {
+      const value = await processResponse(currency, responses[idx])
+      acc = { ...acc, [currency]: value }
+      return acc
+    }, {})
+  })
+
+  return value
+}
+
+/** The method saves the received data to a file */
+function saveToFile(primaryCurrency: string, data: AllCurrencies) {
+  const path = `./dist/${primaryCurrency}`
+
+  if (!fs.existsSync(path)){
+    fs.mkdirSync(path, { recursive: true });
+  }
+
+  const formattedDate = now.toISOString().split('.')[0] + 'Z'
+
+  const content = {
+    meta: {
+      code: '',
+      createdAt: formattedDate
+    },
+    data,
+  }
+
+  fs.writeFileSync(`${path}/${formattedDate}.json`, JSON.stringify(content, null, 2), 'utf-8')
+}
+
+const primaryCurrency = 'EUR'
+saveToFile(primaryCurrency, await makeRequestSync(primaryCurrency))
