@@ -17,7 +17,7 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Run scraper
-        run: bun scraper.ts
+        run: bun src/scraper.ts
 
       - name: Save output to JSON
         run: |
