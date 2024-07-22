@@ -3,7 +3,7 @@ name: Run Scraper File
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/15 8-18 * * 1-5'
+    - cron: '*/30 8-18 * * 1-5'
 
 jobs:
   run-script:

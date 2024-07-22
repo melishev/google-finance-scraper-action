@@ -1,0 +1,9 @@
+{
+  "name": "google-finance-scraper-action",
+  "version": "0.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^20.14.11",
+    "typescript": "^5.5.3"
+  }
+}
