@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "node:fs";
 import currenciesRaw from "./currencies.json" with { type: "json" };
 import { GoogleFinance } from "./providers.js";
 import { isDuplicateCurrenciesPair, isMirrorCurrenciesPair } from "./utils.js";
@@ -95,7 +95,7 @@ function saveToFile(primaryCurrency: string) {
 
   fs.writeFileSync(
     `${path}/${formattedDate}.json`,
-    JSON.stringify(content, null, 2),
+    JSON.stringify(content),
     "utf-8",
   );
 }
