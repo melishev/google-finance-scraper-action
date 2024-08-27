@@ -3,7 +3,8 @@ name: Run Scraper File
 on:
   workflow_dispatch:
   schedule:
-    - cron: '*/30 8-18 * * 1-5'
+    # - cron: '*/30 8-18 * * 1-5' # start every 30 minutes between 8:00 and 18:00 UTC, Monday through Friday
+    - cron: '0 22 * * 1-5' # start every day at 22:00 UTC
 
 jobs:
   run-script:
